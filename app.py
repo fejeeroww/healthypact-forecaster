@@ -4,28 +4,14 @@ import joblib
 import numpy as np
 from datetime import datetime
 import os
-from sklearn.metrics import mean_squared_error
-
-class HalfSquaredError:
-    def __init__(self):
-        self.learning_rate = 0.1
-        
-    def __call__(self, y_true, y_pred):
-        return 0.5 * mean_squared_error(y_true, y_pred)
-    
-    def get_init_raw_predictions(self, X, estimator):
-        return np.zeros(X.shape[0])
+from sklearn.ensemble import GradientBoostingRegressor
 
 app = Flask(__name__, template_folder='Templates')
 
-# Define paths and load both model and scaler
-model_path = 'demand_forecaster_model.joblib'
-scaler_path = 'feature_scaler.joblib'
-
-# Load models with custom loss function
-with open(model_path, 'rb') as f:
-    model = joblib.load(f, mmap_mode=None)
-scaler = joblib.load(scaler_path)
+# Define paths and load model
+model = GradientBoostingRegressor()
+model = joblib.load('demand_forecaster_model.joblib')
+scaler = joblib.load('feature_scaler.joblib')
 
 @app.route('/')
 def home():
