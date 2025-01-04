@@ -1,10 +1,12 @@
+# app.py
 from flask import Flask, request, render_template
 import joblib
 import numpy as np
 from datetime import datetime
 import os
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__)
+
 
 # Load models from models directory
 model_path = os.path.join('models', 'demand_forecaster_model.joblib')
@@ -15,7 +17,7 @@ scaler = joblib.load(scaler_path)
 
 @app.route('/')
 def home():
-    return render_template('templates/index.html')
+    return render_template('index.html')
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
@@ -32,11 +34,11 @@ def predict():
             # Make prediction with scaled features
             prediction = model.predict(scaled_features)[0]
             
-            return render_template('templates/predict.html', prediction=round(prediction, 2))
+            return render_template('predict.html', prediction=round(prediction, 2))
         except Exception as e:
-            return render_template('templates/predict.html', error=str(e))
+            return render_template('predict.html', error=str(e))
     
-    return render_template('templates/predict.html')
+    return render_template('predict.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
