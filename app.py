@@ -7,8 +7,8 @@ import os
 app = Flask(__name__)
 
 # Load models from models directory
-model_path = os.path.join('models', 'demand_forecaster_model.joblib')
-scaler_path = os.path.join('models', 'feature_scaler.joblib')
+model = joblib.load('demand_forecaster_model.joblib')
+scaler = joblib.load('feature_scaler.joblib')
 
 model = joblib.load(model_path)
 scaler = joblib.load(scaler_path)
