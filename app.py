@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, request, render_template
 import joblib
 import numpy as np
@@ -6,9 +7,9 @@ import os
 
 app = Flask(__name__)
 
-# Load models from models directory
-model = joblib.load('demand_forecaster_model.joblib')
-scaler = joblib.load('feature_scaler.joblib')
+# Define paths and load both model and scaler
+model_path = 'demand_forecaster_model.joblib'
+scaler_path = 'feature_scaler.joblib'
 
 model = joblib.load(model_path)
 scaler = joblib.load(scaler_path)
@@ -20,31 +21,21 @@ def home():
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
     if request.method == 'POST':
-        # Get form data
-        date = datetime.strptime(request.form['date'], '%Y-%m-%d')
-        price = float(request.form['price'])
-        promotion = int(request.form['promotion'])
-        economic_index = float(request.form['economic_index'])
-        competitor_price = float(request.form['competitor_price'])
-        
-        # Feature engineering
-        month = date.month
-        is_weekend = 1 if date.weekday() >= 5 else 0
-        month_sin = np.sin(2 * np.pi * month/12)
-        month_cos = np.cos(2 * np.pi * month/12)
-        
-        # Create features array
-        features = np.array([
-            month_sin, month_cos, is_weekend,
-            price, promotion, economic_index,
-            competitor_price, 1400, 1380, 1420
-        ]).reshape(1, -1)
-        
-        # Make prediction
-        scaled_features = scaler.transform(features)
-        prediction = model.predict(scaled_features)[0]
-        
-        return render_template('predict.html', prediction=round(prediction, 2))
+        try:
+            # Get input values
+            price = float(request.form['price'])
+            promotion = int(request.form['promotion'])
+            
+            # Create features and scale them
+            features = np.array([price, promotion]).reshape(1, -1)
+            scaled_features = scaler.transform(features)
+            
+            # Make prediction with scaled features
+            prediction = model.predict(scaled_features)[0]
+            
+            return render_template('predict.html', prediction=round(prediction, 2))
+        except Exception as e:
+            return render_template('predict.html', error=str(e))
     
     return render_template('predict.html')
 
