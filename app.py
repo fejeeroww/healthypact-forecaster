@@ -7,20 +7,24 @@ import os
 from sklearn.metrics import mean_squared_error
 
 class HalfSquaredError:
+    def __init__(self):
+        self.learning_rate = 0.1
+        
     def __call__(self, y_true, y_pred):
         return 0.5 * mean_squared_error(y_true, y_pred)
-
-# Register the custom loss function
-joblib.register_lookup('HalfSquaredError', HalfSquaredError)
-
+    
+    def get_init_raw_predictions(self, X, estimator):
+        return np.zeros(X.shape[0])
 
 app = Flask(__name__, template_folder='Templates')
 
-# Load models from models directory
-model_path = os.path.join('models', 'demand_forecaster_model.joblib')
-scaler_path = os.path.join('models', 'feature_scaler.joblib')
+# Define paths and load both model and scaler
+model_path = 'demand_forecaster_model.joblib'
+scaler_path = 'feature_scaler.joblib'
 
-model = joblib.load(model_path)
+# Load models with custom loss function
+with open(model_path, 'rb') as f:
+    model = joblib.load(f, mmap_mode=None)
 scaler = joblib.load(scaler_path)
 
 @app.route('/')
