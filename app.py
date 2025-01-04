@@ -3,18 +3,16 @@ from flask import Flask, request, render_template
 import joblib
 import numpy as np
 from datetime import datetime
-import os
 
 app = Flask(__name__, template_folder='Templates')
 
-# Load the pre-trained model directly
+# Load the new model and scaler
 model = joblib.load('demand_forecaster_model.joblib')
 scaler = joblib.load('feature_scaler.joblib')
 
 @app.route('/')
 def home():
     return render_template('index.html')
-
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
@@ -33,7 +31,7 @@ def predict():
             month_sin = np.sin(2 * np.pi * month/12)
             month_cos = np.cos(2 * np.pi * month/12)
             
-            # Create complete feature array
+            # Create feature array matching training data structure
             features = np.array([
                 month_sin,
                 month_cos,
@@ -47,6 +45,7 @@ def predict():
                 1420   # default rolling_mean_7
             ]).reshape(1, -1)
             
+            # Scale features and predict
             scaled_features = scaler.transform(features)
             prediction = model.predict(scaled_features)[0]
             
@@ -115,3 +114,4 @@ def optimize():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
