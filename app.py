@@ -23,14 +23,33 @@ def predict():
     if request.method == 'POST':
         try:
             # Get input values
+            date = datetime.strptime(request.form['date'], '%Y-%m-%d')
             price = float(request.form['price'])
             promotion = int(request.form['promotion'])
+            economic_index = float(request.form['economic_index'])
+            competitor_price = float(request.form['competitor_price'])
             
-            # Create features and scale them
-            features = np.array([price, promotion]).reshape(1, -1)
+            # Calculate time features
+            month = date.month
+            is_weekend = 1 if date.weekday() >= 5 else 0
+            month_sin = np.sin(2 * np.pi * month/12)
+            month_cos = np.cos(2 * np.pi * month/12)
+            
+            # Create complete feature array
+            features = np.array([
+                month_sin,
+                month_cos,
+                is_weekend,
+                price,
+                promotion,
+                economic_index,
+                competitor_price,
+                1400,  # default demand_lag_7
+                1380,  # default demand_lag_14
+                1420   # default rolling_mean_7
+            ]).reshape(1, -1)
+            
             scaled_features = scaler.transform(features)
-            
-            # Make prediction with scaled features
             prediction = model.predict(scaled_features)[0]
             
             return render_template('predict.html', prediction=round(prediction, 2))
@@ -43,16 +62,38 @@ def predict():
 def optimize():
     if request.method == 'POST':
         try:
+            # Get input values
+            date = datetime.strptime(request.form['date'], '%Y-%m-%d')
             promotion = int(request.form['promotion'])
+            economic_index = float(request.form['economic_index'])
+            competitor_price = float(request.form['competitor_price'])
+            
+            # Calculate time features
+            month = date.month
+            is_weekend = 1 if date.weekday() >= 5 else 0
+            month_sin = np.sin(2 * np.pi * month/12)
+            month_cos = np.cos(2 * np.pi * month/12)
             
             # Price optimization
-            price_range = np.arange(10, 100, 0.5)  # Test prices from $10 to $100
+            price_range = np.arange(10, 100, 0.5)
             best_price = 0
             max_revenue = 0
             best_demand = 0
             
             for price in price_range:
-                features = np.array([price, promotion]).reshape(1, -1)
+                features = np.array([
+                    month_sin,
+                    month_cos,
+                    is_weekend,
+                    price,
+                    promotion,
+                    economic_index,
+                    competitor_price,
+                    1400,  # default demand_lag_7
+                    1380,  # default demand_lag_14
+                    1420   # default rolling_mean_7
+                ]).reshape(1, -1)
+                
                 scaled_features = scaler.transform(features)
                 predicted_demand = model.predict(scaled_features)[0]
                 revenue = predicted_demand * price
