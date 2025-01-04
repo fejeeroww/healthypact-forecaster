@@ -4,6 +4,15 @@ import joblib
 import numpy as np
 from datetime import datetime
 import os
+from sklearn.metrics import mean_squared_error
+
+class HalfSquaredError:
+    def __call__(self, y_true, y_pred):
+        return 0.5 * mean_squared_error(y_true, y_pred)
+
+# Register the custom loss function
+joblib.register_lookup('HalfSquaredError', HalfSquaredError)
+
 
 app = Flask(__name__, template_folder='Templates')
 
