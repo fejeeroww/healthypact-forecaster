@@ -4,39 +4,17 @@ import joblib
 import numpy as np
 from datetime import datetime
 import os
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import mean_squared_error
-
-class HalfSquaredError:
-    def __init__(self):
-        self.learning_rate = 0.1
-        
-    def __call__(self, y_true, y_pred):
-        return 0.5 * mean_squared_error(y_true, y_pred)
-    
-    def negative_gradient(self, y_true, y_pred):
-        return y_true - y_pred
-    
-    def get_init_raw_predictions(self, X, estimator):
-        predictions = np.zeros(len(X))
-        return predictions
 
 app = Flask(__name__, template_folder='Templates')
 
-# Load a new GradientBoostingRegressor
-base_model = GradientBoostingRegressor(
-    n_estimators=100,
-    learning_rate=0.1,
-    max_depth=3,
-    random_state=42
-)
-
-# Use the base model for predictions
-model = base_model
+# Load the pre-trained model directly
+model = joblib.load('demand_forecaster_model.joblib')
 scaler = joblib.load('feature_scaler.joblib')
+
 @app.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
